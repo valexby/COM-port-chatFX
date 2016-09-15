@@ -1,5 +1,6 @@
-#include "comChat_ChatController.h"
-#include <jni.h>
+#include "comChat_PortThread.h"
+#include "jni.h"
+#include "jni_md.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -19,7 +20,7 @@ termios termios_init()
   return tio;
 }
 
-JNIEXPORT jint JNICALL Java_comChat_ChatController_initPort(JNIEnv *env, jclass myclass, jstring portName)
+JNIEXPORT jint JNICALL Java_comChat_PortThread_initPort(JNIEnv *env, jobject myobj, jstring portName)
 {
   struct termios tio;
   int tty_fd;
@@ -35,7 +36,7 @@ JNIEXPORT jint JNICALL Java_comChat_ChatController_initPort(JNIEnv *env, jclass 
   return tty_fd;
 }
 
-JNIEXPORT void JNICALL Java_comChat_ChatController_sendMessage(JNIEnv *env, jclass myclass, jint portDescr, jstring javaMessage, jint jLength)
+JNIEXPORT void JNICALL Java_comChat_PortThread_sendMessage(JNIEnv *env, jobject myobj, jint portDescr, jstring javaMessage, jint jLength)
 {
   bool isCopy = false;
   const char *message = env->GetStringUTFChars(javaMessage, (jboolean*)(&isCopy));
@@ -46,13 +47,13 @@ JNIEXPORT void JNICALL Java_comChat_ChatController_sendMessage(JNIEnv *env, jcla
 	write(tty_fd, &c, 1);
 }
 
-JNIEXPORT void JNICALL Java_comChat_ChatController_closePort(JNIEnv *env, jclass myclass, jint portDescr)
+JNIEXPORT void JNICALL Java_comChat_PortThread_closePort(JNIEnv *env, jobject myobj, jint portDescr)
 {
   int tty_fd = (int)portDescr;
   close(tty_fd);
 }
 
-JNIEXPORT jchar JNICALL Java_comChat_ChatController_readSymbol(JNIEnv *env, jclass myclass, jint portDescr)
+JNIEXPORT jchar JNICALL Java_comChat_PortThread_readSymbol(JNIEnv *env, jobject myobj, jint portDescr)
 {
   int tty_fd = (int)portDescr;
   char c;
