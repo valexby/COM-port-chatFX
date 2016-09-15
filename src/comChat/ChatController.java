@@ -56,6 +56,7 @@ public class ChatController implements Initializable {
             Platform.runLater(() -> {
                 message1.setDisable(true);
                 sendButton1.setDisable(true);
+                portField1.setDisable(false);
                 connectButton1.setText("Connect");
             });
             return;
@@ -65,6 +66,7 @@ public class ChatController implements Initializable {
             Platform.runLater(() -> {
                 message1.setDisable(false);
                 sendButton1.setDisable(false);
+                portField1.setDisable(true);
                 connectButton1.setText("Disconnect");
             });
             readerThread1 = new ReaderThread(descriptor1);
@@ -83,6 +85,7 @@ public class ChatController implements Initializable {
             Platform.runLater(() -> {
                 message2.setDisable(true);
                 sendButton2.setDisable(true);
+                portField2.setDisable(false);
                 connectButton2.setText("Connect");
             });
             return;
@@ -92,6 +95,7 @@ public class ChatController implements Initializable {
             Platform.runLater(() -> {
                 message2.setDisable(false);
                 sendButton2.setDisable(false);
+                portField2.setDisable(true);
                 connectButton2.setText("Disconnect");
             });
             readerThread2 = new ReaderThread(descriptor2);
@@ -123,10 +127,10 @@ public class ChatController implements Initializable {
                             stringBuffer += buffer;
                             buffer = readSymbol(descriptor);
                         }
+                        if (descriptor == descriptor1) stringBuffer = portField2.getText() + ": " + stringBuffer;
+                        if (descriptor == descriptor2) stringBuffer = portField1.getText() + ": " + stringBuffer;
                         final String out = stringBuffer;
-                        Platform.runLater(() -> {
-                            chatArea.setText(chatArea.getText() + out);
-                        });
+                        Platform.runLater(() -> chatArea.setText(chatArea.getText() + out));
                     }
                     sleep(100);
                 } catch (InterruptedException ex) {
