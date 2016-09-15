@@ -11,7 +11,6 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class ChatController implements Initializable {
-    private int descriptor1 = -1, descriptor2 = -1;
 
     public void initialize(URL location, ResourceBundle resources) {
     }
@@ -25,81 +24,65 @@ public class ChatController implements Initializable {
     @FXML
     private TextArea chatArea;
 
-    private ReaderThread readerThread1, readerThread2;
+    private PortThread portThread1, portThread2;
 
     @FXML
     private void onSend1() {
-        sendMessage(descriptor1, message1.getText(), message1.getText().length());
+        sendMessage(portThread1.descriptor, message1.getText(), message1.getText().length());
     }
 
     @FXML
     private void onSend2() {
-        sendMessage(descriptor2, message2.getText(), message2.getText().length());
+        sendMessage(portThread2.descriptor, message2.getText(), message2.getText().length());
     }
 
     void onStop()
     {
-        if (readerThread1 != null && !readerThread1.isInterrupted()) readerThread1.interrupt();
-        if (readerThread2 != null && !readerThread2.isInterrupted()) readerThread2.interrupt();
-        closePort(descriptor1);
-        closePort(descriptor2);
+        if (portThread1 != null && !portThread1.isInterrupted()) portThread1.interrupt();
+        if (portThread2 != null && !portThread2.isInterrupted()) portThread2.interrupt();
     }
 
     @FXML
     void onConnect1()
     {
-        if (descriptor1 != -1)
-        {
-            readerThread1.interrupt();
-            closePort(descriptor1);
-            descriptor1 = -1;
-            Platform.runLater(() -> {
-                message1.setDisable(true);
-                sendButton1.setDisable(true);
-                portField1.setDisable(false);
-                connectButton1.setText("Connect");
-            });
-            return;
-        }
-        if ((descriptor1 = initPort(portField1.getText())) != -1)
-        {
-            Platform.runLater(() -> {
-                message1.setDisable(false);
-                sendButton1.setDisable(false);
-                portField1.setDisable(true);
-                connectButton1.setText("Disconnect");
-            });
-            readerThread1 = new ReaderThread(descriptor1);
-            readerThread1.start();
-        }
+        portThread1 = onConnect(message1, sendButton1, portField1, connectButton1, portThread1);
     }
 
     @FXML
     void onConnect2()
     {
-        if (descriptor2 != -1)
+        portThread2 = onConnect(message2, sendButton2, portField2, connectButton2, portThread2);
+    }
+
+    private PortThread onConnect(TextField message, Button sendButton,
+                                 TextField portField, Button connectButton, PortThread portThread)
+    {
+        if (portThread != null && portThread.isAlive())
         {
-            readerThread2.interrupt();
-            closePort(descriptor2);
-            descriptor2 = -1;
+            portThread.interrupt();
             Platform.runLater(() -> {
-                message2.setDisable(true);
-                sendButton2.setDisable(true);
-                portField2.setDisable(false);
-                connectButton2.setText("Connect");
+                message.setDisable(true);
+                sendButton.setDisable(true);
+                portField.setDisable(false);
+                connectButton.setText("Connect");
             });
-            return;
+            return portThread;
         }
-        if ((descriptor2 = initPort(portField2.getText())) != -1)
-        {
+        else {
+            try {
+                portThread = new PortThread(portField.getText());
+            } catch (Exception ex) {
+                System.out.print(ex.getMessage());
+                return null;
+            }
             Platform.runLater(() -> {
-                message2.setDisable(false);
-                sendButton2.setDisable(false);
-                portField2.setDisable(true);
-                connectButton2.setText("Disconnect");
+                message.setDisable(false);
+                sendButton.setDisable(false);
+                portField.setDisable(true);
+                connectButton.setText("Disconnect");
             });
-            readerThread2 = new ReaderThread(descriptor2);
-            readerThread2.start();
+            portThread.start();
+            return portThread;
         }
     }
 
@@ -108,11 +91,14 @@ public class ChatController implements Initializable {
     native private static void closePort(int descriptor);
     native private static char readSymbol(int descriptor);
 
-    private class ReaderThread extends Thread {
+    private class PortThread extends Thread {
         int descriptor = -1;
+        String portName;
 
-        ReaderThread(int descriptor) {
-            this.descriptor = descriptor;
+        PortThread(String portName) throws Exception{
+            descriptor = initPort(portName);
+            if (descriptor == -1) throw new Exception("Serial port connect error");
+            this.portName = portName;
         }
 
         @Override
@@ -127,13 +113,13 @@ public class ChatController implements Initializable {
                             stringBuffer += buffer;
                             buffer = readSymbol(descriptor);
                         }
-                        if (descriptor == descriptor1) stringBuffer = portField2.getText() + ": " + stringBuffer;
-                        if (descriptor == descriptor2) stringBuffer = portField1.getText() + ": " + stringBuffer;
+                        stringBuffer = portName + ": " + stringBuffer;
                         final String out = stringBuffer;
                         Platform.runLater(() -> chatArea.setText(chatArea.getText() + out));
                     }
                     sleep(100);
                 } catch (InterruptedException ex) {
+                    closePort(descriptor);
                     break;
                 }
             }
