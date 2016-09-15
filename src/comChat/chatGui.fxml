@@ -43,6 +43,6 @@
                 </VBox>
             </children>
         </HBox>
-        <TextArea fx:id="chatArea" prefHeight="200.0" prefWidth="200.0" />
+        <TextArea fx:id="chatArea" editable="false" prefHeight="200.0" prefWidth="200.0" />
     </children>
 </VBox>

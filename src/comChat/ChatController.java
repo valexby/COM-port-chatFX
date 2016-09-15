@@ -39,8 +39,8 @@ public class ChatController implements Initializable {
 
     void onStop()
     {
-        if (!readerThread1.isInterrupted()) readerThread1.interrupt();
-        if (!readerThread2.isInterrupted()) readerThread2.interrupt();
+        if (readerThread1 != null && !readerThread1.isInterrupted()) readerThread1.interrupt();
+        if (readerThread2 != null && !readerThread2.isInterrupted()) readerThread2.interrupt();
         closePort(descriptor1);
         closePort(descriptor2);
     }
