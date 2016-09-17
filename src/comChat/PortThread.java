@@ -5,6 +5,12 @@ package comChat;
  */
 class PortThread extends Thread {
 
+    private static final int[] bauds= {0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400,
+            4800, 9600, 19200, 38400, 57600, 115200, 230400};
+
+    private int inBaud = 115200, outBaud = 115200;
+    private boolean parityBit = true;
+
     static {
         System.loadLibrary("com_helper");
     }
@@ -22,6 +28,21 @@ class PortThread extends Thread {
 
     void sendMessage(String message) {
         sendMessage(descriptor, message, message.length());
+    }
+
+    void setInSpeed(int newBaud) {
+        inBaud = findNormalBaud(newBaud);
+        setOptions(descriptor, inBaud, outBaud, parityBit);
+    }
+
+    void setParityBit(boolean value) {
+        parityBit = value;
+        setOptions(descriptor, inBaud, outBaud, parityBit);
+    }
+
+    void setOutSpeed(int newBaud) {
+        outBaud = findNormalBaud(newBaud);
+        setOptions(descriptor, inBaud, outBaud, parityBit);
     }
 
     @Override
@@ -47,6 +68,17 @@ class PortThread extends Thread {
         }
     }
 
+    private int findNormalBaud(int baud) {
+        int min = 230402, res = 0;
+        for (int i : bauds) {
+            if (Math.abs(baud - i) < min) {
+                min = Math.abs(baud - i);
+                res = i;
+            }
+        }
+        return res;
+    }
+
     native private int initPort(String portName);
 
     native private void sendMessage(int descriptor, String message, int length);
@@ -54,4 +86,6 @@ class PortThread extends Thread {
     native private void closePort(int descriptor);
 
     native private char readSymbol(int descriptor);
+
+    native private void setOptions(int descriptor, int inBaud, int outBaud, boolean parityBit);
 }

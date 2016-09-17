@@ -3,9 +3,7 @@ package comChat;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -21,6 +19,12 @@ public class ChatController implements Initializable {
     @FXML
     private TextArea chatArea;
 
+    @FXML
+    Slider inSpeedSlider1, inSpeedSlider2, outSpeedSlider1, outSpeedSlider2;
+
+    @FXML
+    CheckBox parityCheck1, parityCheck2;
+
     private PortThread portThread1, portThread2;
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -28,12 +32,12 @@ public class ChatController implements Initializable {
 
     @FXML
     private void onSend1() {
-        portThread1.sendMessage(message1.getText());
+        portThread1.sendMessage(message2.getText());
     }
 
     @FXML
     private void onSend2() {
-        portThread2.sendMessage(message2.getText());
+        portThread2.sendMessage(message1.getText());
     }
 
     void onStop() {
@@ -43,12 +47,48 @@ public class ChatController implements Initializable {
 
     @FXML
     void onConnect1() {
-        portThread1 = onConnect(message1, sendButton1, portField1, connectButton1, portThread1);
+        portThread1 = onConnect(message1, sendButton1, portField1, connectButton1, portThread1,
+                inSpeedSlider1, outSpeedSlider1, parityCheck1);
     }
 
     @FXML
     void onConnect2() {
-        portThread2 = onConnect(message2, sendButton2, portField2, connectButton2, portThread2);
+        portThread2 = onConnect(message2, sendButton2, portField2, connectButton2, portThread2,
+                inSpeedSlider2, outSpeedSlider2, parityCheck2);
+    }
+
+    @FXML
+    void onInSpeedChange1()
+    {
+        portThread1.setInSpeed((int)inSpeedSlider1.getValue());
+    }
+
+    @FXML
+    void onInSpeedChange2()
+    {
+        portThread2.setInSpeed((int)inSpeedSlider2.getValue());
+    }
+
+    @FXML
+    void onOutSpeedChange1()
+    {
+        portThread1.setOutSpeed((int)outSpeedSlider1.getValue());
+    }
+
+    @FXML
+    void onOutSpeedChange2()
+    {
+        portThread2.setOutSpeed((int)outSpeedSlider2.getValue());
+    }
+
+    @FXML
+    void onParitySet1() {
+        portThread1.setParityBit(parityCheck1.isSelected());
+    }
+
+    @FXML
+    void onParitySet2() {
+        portThread2.setParityBit(parityCheck2.isSelected());
     }
 
     void addMessageToArea(String message)
@@ -57,12 +97,16 @@ public class ChatController implements Initializable {
     }
 
     private PortThread onConnect(TextField message, Button sendButton,
-                                 TextField portField, Button connectButton, PortThread portThread) {
+                                 TextField portField, Button connectButton, PortThread portThread,
+                                 Slider inSpeedSlider, Slider outSpeedSlider, CheckBox parityCheck) {
         if (portThread != null && portThread.isAlive()) {
             portThread.interrupt();
             Platform.runLater(() -> {
                 message.setDisable(true);
                 sendButton.setDisable(true);
+                inSpeedSlider.setDisable(true);
+                outSpeedSlider.setDisable(true);
+                parityCheck.setDisable(true);
                 portField.setDisable(false);
                 connectButton.setText("Connect");
             });
@@ -74,9 +118,14 @@ public class ChatController implements Initializable {
                 System.out.print(ex.getMessage());
                 return null;
             }
+            portThread.setInSpeed((int)inSpeedSlider.getValue());
+            portThread.setOutSpeed((int)outSpeedSlider.getValue());
             Platform.runLater(() -> {
                 message.setDisable(false);
                 sendButton.setDisable(false);
+                inSpeedSlider.setDisable(false);
+                outSpeedSlider.setDisable(false);
+                parityCheck.setDisable(false);
                 portField.setDisable(true);
                 connectButton.setText("Disconnect");
             });

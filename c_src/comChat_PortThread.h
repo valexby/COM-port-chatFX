@@ -45,6 +45,14 @@ JNIEXPORT void JNICALL Java_comChat_PortThread_closePort
 JNIEXPORT jchar JNICALL Java_comChat_PortThread_readSymbol
   (JNIEnv *, jobject, jint);
 
+/*
+ * Class:     comChat_PortThread
+ * Method:    setOptions
+ * Signature: (IIIZ)V
+ */
+JNIEXPORT void JNICALL Java_comChat_PortThread_setOptions
+  (JNIEnv *, jobject, jint, jint, jint, jboolean);
+
 #ifdef __cplusplus
 }
 #endif
